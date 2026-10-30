@@ -1,0 +1,25 @@
+What does each file do?
+
+File                          Responsibility
+app.py                        Main file: page setup, navigation, sidebar user box and logout
+pages/login.py                Login and Create Account page (shown when logged out)
+pages/dashboard.py            Summary numbers, charts, quick links, recent decisions
+pages/import_data.py          Upload CSV files, use sample data, clear data
+pages/matching_review.py      Review suggestions, confirm / reject / choose another invoice
+pages/balances.py             Invoice, payment and customer balances with filters
+pages/allocation_history.py   All decisions, who made them, undo a decision
+pages/reports.py              Generate, preview and download CSV reports
+pages/account.py              Profile, change password, logout
+modules/auth.py               Register, login, password hashing, account lock
+modules/ui.py                 Small helpers shared by pages (session, messages, money)
+modules/csv_import.py         Import invoice and payment CSVs
+modules/validation.py         Identify invalid records
+modules/normalization.py      Clean names, descriptions, amounts and dates
+modules/duplicates.py         Find payments entered twice
+modules/matching.py           Find possible invoice-payment matches
+modules/reconciliation.py     Allocations and outstanding balances
+modules/report.py             Generate downloadable reports
+database/database.py          Save records, users and user decisions (SQLite)
+data/                         Sample CSV files (250 invoices, 250 payments)
+reports/                      Generated CSV reports
+tests/ and test_*.py          Verify the system works correctly (pytest)

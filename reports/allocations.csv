@@ -1,0 +1,2 @@
+allocation_id,payment_id,description,invoice_id,customer_name,allocated_amount,status,decided_by,decision_date
+1,PAY001,Rahul Verma INV101,INV101,Rahul Verma,12000.00,confirmed,adarshkumar83,2026-10-30 12:08:44
