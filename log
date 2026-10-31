@@ -1,0 +1,114 @@
+# FairShift – Project Log
+
+Financial Reconciliation System (Python, Streamlit, SQLite, pandas, rapidfuzz)
+
+---
+
+## 1. Project summary
+
+| Item | Detail |
+|---|---|
+| Purpose | Import invoices and payments, review matching suggestions, manage payment allocations |
+| Entry point | `app.py` (run with `streamlit run app.py`) |
+| Dependencies | pandas, streamlit>=1.50, rapidfuzz, pytest |
+| Database | SQLite, 5 tables: users, invoices, payments, match_suggestions, allocations |
+| Source files last modified | 2026-10-30 (per the uploaded archive) |
+| Log written | 2026-10-31 |
+
+---
+
+## 2. Feature log
+
+### Authentication (`modules/auth.py`, `pages/login.py`, `pages/account.py`, `app.py`)
+- [x] Create Account with validation (username 3-30 chars of letters/numbers/underscore, full name 2+ chars, valid email, password 8+ chars with a letter and a number, password confirmation, unique username stored in lowercase)
+- [x] Login with PBKDF2-SHA256 hashing (200,000 rounds, random salt per user)
+- [x] Account lock: 5 wrong passwords lock the account for 5 minutes
+- [x] Same error message for unknown user and wrong password
+- [x] Logged-out visitors only see the Login page (navigation hidden)
+- [x] `require_login()` guard on every page
+- [x] Logout from the sidebar (all pages) and from My Account; clears the whole session
+- [x] My Account: profile view and change password (verifies current password first)
+
+### Data import and preparation
+- [x] CSV import for invoices and payments (`modules/csv_import.py`)
+- [x] Validation: required columns, missing values, invalid or non-positive amounts, invalid dates, duplicate IDs (`modules/validation.py`)
+- [x] Normalization of IDs, names, amounts (2 decimals) and dates (`modules/normalization.py`)
+- [x] Duplicate payment detection: same description, amount and date (`modules/duplicates.py`)
+- [x] Sample data loader (250 invoices, 250 payments, 20 customers)
+- [x] Clear All Data with confirmation checkbox (accounts are kept)
+- [x] Re-importing an existing ID updates the record; saved decisions are kept
+
+### Matching (`modules/matching.py`)
+- [x] Confidence score: 40% invoice reference, 30% customer name similarity, 20% exact amount, 10% date closeness
+- [x] Date score tiers: within 1 day = 100, 3 days = 80, 7 days = 60, 14 days = 40, otherwise 0
+- [x] Six statuses: High Confidence (85+ and exact amount), Needs Review (60+), Amount Mismatch, Ambiguous (top two within 10 points), Possible Duplicate, Unmatched
+- [x] Plain-language explanation stored with each suggestion
+
+### Reconciliation (`modules/reconciliation.py`, `pages/matching_review.py`)
+- [x] Confirm allocation, reject suggestion, undo decision
+- [x] Confirm All High Confidence in one click
+- [x] Filters by status, decision and search text
+- [x] Choose another invoice (only invoices with outstanding balance)
+- [x] Allocation amount capped at the smaller of payment remainder and invoice outstanding
+- [x] Decimal arithmetic and `BEGIN IMMEDIATE` transaction lock when allocating
+
+### Records and reports
+- [x] Dashboard: 8 summary metrics, 2 charts, quick links, 5 most recent decisions
+- [x] Balances: invoice, payment and customer tabs with filters
+- [x] Allocation History: who decided, when, with undo
+- [x] Reports: 5 CSV files (invoice balances, payment balances, matching suggestions, allocations, customer summary) with preview and download
+
+---
+
+## 3. Verification log
+
+### Automated tests (run 2026-10-31)
+Command: `python -m pytest`
+Result: **33 passed**
+
+Test files: `tests/test_auth.py`, `tests/test_matching.py`, `tests/test_balance.py`, `tests/test_duplicates.py`, `tests/test_report.py`, `tests/test_database.py`, plus `test_validation.py`, `test_normalization.py`, `test_import.py`
+
+### Sample data run (run 2026-10-31)
+- Validation of both sample CSVs: no errors
+- Total invoiced: 1,410,850.00
+- Total received: 1,354,512.50
+
+| Matching status | Payments |
+|---|---|
+| High Confidence | 175 |
+| Amount Mismatch | 63 |
+| Ambiguous | 11 |
+| Possible Duplicate | 1 |
+| Needs Review | 0 |
+| Unmatched | 0 |
+
+Mean confidence score: 89.47 (min 41.64, median 96.0, max 100)
+
+---
+
+## 4. Known limitations and notes
+
+- Anyone who can open the app can create an account. Add an approval step before any public deployment (also noted in the README).
+- Users stay logged in until they press Logout or refresh the browser tab; the session is not kept across a refresh.
+- Each payment can have only one allocation record (`payment_id` is unique in `allocations`).
+- Matching compares every payment with every invoice, so run time grows with the product of the two record counts.
+- The `reports/` folder is where generated CSV files are written.
+
+---
+
+## 5. Work log
+
+| Date | Entry |
+|---|---|
+| 2026-10-30 | Project source files created or last modified (modules, pages, database, tests, README) |
+| 2026-10-31 | Reviewed the full codebase, ran the test suite (33 passed) and the sample-data matching run |
+| 2026-10-31 | Created the presentation `FairShift_Presentation.pptx` (23 slides with speaker notes) |
+| 2026-10-31 | Created this project log |
+
+---
+
+## 6. Open items / ideas
+
+- [ ] Account approval step before public deployment
+- [ ] Keep users signed in across a browser refresh
+- [ ] Allow one payment to be split across several invoices in the review screen
